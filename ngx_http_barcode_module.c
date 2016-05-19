@@ -2,7 +2,7 @@
 * @Author: detailyang
 * @Date:   2016-05-18 09:43:45
 * @Last Modified by:   detailyang
-* @Last Modified time: 2016-05-18 23:11:34
+* @Last Modified time: 2016-05-19 13:42:07
 */
 #include "ngx_http_barcode_module.h"
 
@@ -21,6 +21,54 @@ static ngx_command_t ngx_http_barcode_commands[] = {
         ngx_http_barcode_txt,
         NGX_HTTP_LOC_CONF_OFFSET,
         offsetof(ngx_http_barcode_loc_conf_t, txt),
+        NULL
+    },
+    {
+        ngx_string("barcode_fg"),
+        NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
+        ngx_http_barcode_fg,
+        NGX_HTTP_LOC_CONF_OFFSET,
+        offsetof(ngx_http_barcode_loc_conf_t, fg),
+        NULL
+    },
+    {
+        ngx_string("barcode_bg"),
+        NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
+        ngx_http_barcode_bg,
+        NGX_HTTP_LOC_CONF_OFFSET,
+        offsetof(ngx_http_barcode_loc_conf_t, bg),
+        NULL
+    },
+    {
+        ngx_string("barcode_height"),
+        NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
+        ngx_http_barcode_height,
+        NGX_HTTP_LOC_CONF_OFFSET,
+        offsetof(ngx_http_barcode_loc_conf_t, height),
+        NULL
+    },
+    {
+        ngx_string("barcode_scale"),
+        NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
+        ngx_http_barcode_scale,
+        NGX_HTTP_LOC_CONF_OFFSET,
+        offsetof(ngx_http_barcode_loc_conf_t, scale),
+        NULL
+    },
+    {
+        ngx_string("barcode_rotate"),
+        NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
+        ngx_http_barcode_rotate,
+        NGX_HTTP_LOC_CONF_OFFSET,
+        offsetof(ngx_http_barcode_loc_conf_t, rotate),
+        NULL
+    },
+    {
+        ngx_string("barcode_hrt"),
+        NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
+        ngx_http_barcode_hrt,
+        NGX_HTTP_LOC_CONF_OFFSET,
+        offsetof(ngx_http_barcode_loc_conf_t, hrt),
         NULL
     },
     ngx_null_command
@@ -88,6 +136,7 @@ ngx_http_barcode_handler(ngx_http_request_t *req) {
     ssize_t size;
     ngx_http_barcode_loc_conf_t *blcf;
     u_char *txt;
+    int rotate = 0;
 
     blcf = ngx_http_get_module_loc_conf(req, ngx_http_barcode_module);
     rc = ngx_http_barcode_run_variables(req, blcf);
@@ -95,7 +144,9 @@ ngx_http_barcode_handler(ngx_http_request_t *req) {
         ngx_log_error(NGX_LOG_ERR, req->connection->log, 0, "barcode: run variables error");
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
-    ngx_log_error(NGX_LOG_ERR, req->connection->log, 0, "barcode: txt: %V", &blcf->txt);
+    if (blcf->txt.len == 0) {
+        return NGX_HTTP_BAD_REQUEST;
+    }
     txt = ngx_pcalloc(req->pool, blcf->txt.len + 1);
     if (txt == NULL) {
         ngx_log_error(NGX_LOG_ERR, req->connection->log, 0, "barcode: pcalloc txt error");
@@ -104,7 +155,35 @@ ngx_http_barcode_handler(ngx_http_request_t *req) {
     ngx_sprintf(txt, "%V", &blcf->txt);
 
     symbol = ZBarcode_Create();
-    error_number = escape_char_process(symbol, (uint8_t *)txt, sizeof(txt));
+    if (blcf->fg.len) {
+        strncpy(symbol->fgcolour, (const char *)blcf->fg.data, blcf->fg.len > 6 ? 6 : blcf->fg.len);
+    }
+    if (blcf->bg.len) {
+        strncpy(symbol->bgcolour, (const char *)blcf->bg.data, blcf->bg.len > 6 ? 6 : blcf->bg.len);
+    }
+    if (blcf->height.len) {
+        symbol->height = ngx_atoi(blcf->height.data, blcf->height.len);
+        if (symbol->height < 1 || symbol->height > 1000) {
+            return NGX_HTTP_BAD_REQUEST;
+        }
+    }
+    if (blcf->scale.len) {
+        symbol->scale = ngx_atofp(blcf->scale.data, blcf->scale.len, 2) / 100.00;
+        ngx_log_error(NGX_LOG_ERR, req->connection->log, 0, "scale %.2f", symbol->scale);
+        if (symbol->scale < 0.01 || symbol->scale > 3) {
+            return NGX_HTTP_BAD_REQUEST;
+        }
+    }
+    if (blcf->hrt.len) {
+        symbol->show_hrt = 0;
+    }
+    if (blcf->rotate.len) {
+        rotate = ngx_atoi(blcf->rotate.data, blcf->rotate.len);
+        if (rotate != 0 && rotate != 90 && rotate != 180 && rotate != 270) {
+            return NGX_HTTP_BAD_REQUEST;
+        }
+    }
+    error_number = escape_char_process(symbol, (uint8_t *)txt, ngx_strlen(txt));
     if (error_number != 0) {
         ZBarcode_Delete(symbol);
         ngx_log_error(NGX_LOG_ERR, req->connection->log, 0, "barcode: escape error");
@@ -120,17 +199,21 @@ ngx_http_barcode_handler(ngx_http_request_t *req) {
     if (barcode_buf == NULL) {
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
-
     symbol->output_buffer = barcode_buf;
-    int rotate_angle = 0;
 
-    error_number = ZBarcode_Print(symbol, rotate_angle);
+    error_number = ZBarcode_Print(symbol, rotate);
     if(error_number != 0) {
         ngx_log_error(NGX_LOG_ERR, req->connection->log, 0, "barcode: print error %d", error_number);
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
+    if (blcf->scale.len) {
+        if (png_pixel_scale(req, symbol, &image_height, &image_width) != NGX_OK) {
+            ngx_log_error(NGX_LOG_ERR, req->connection->log, 0, "barcode: scale error");
+            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        }
+    }
     error_number = png_pixel_plot(symbol, image_height, image_width,
-        symbol->output_buffer, rotate_angle, &png_buf);
+        symbol->output_buffer, rotate, &png_buf);
     if (error_number != 0) {
         ngx_log_error(NGX_LOG_ERR, req->connection->log, 0, "barcode: errno %d", error_number);
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
@@ -166,6 +249,36 @@ ngx_http_barcode_txt(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
 }
 
 static char *
+ngx_http_barcode_fg(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    return ngx_http_barcode_compile_variables(barcode_cfg_fg, cf, cmd, conf);
+}
+
+static char *
+ngx_http_barcode_bg(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    return ngx_http_barcode_compile_variables(barcode_cfg_bg, cf, cmd, conf);
+}
+
+static char *
+ngx_http_barcode_height(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    return ngx_http_barcode_compile_variables(barcode_cfg_height, cf, cmd, conf);
+}
+
+static char *
+ngx_http_barcode_scale(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    return ngx_http_barcode_compile_variables(barcode_cfg_scale, cf, cmd, conf);
+}
+
+static char *
+ngx_http_barcode_rotate(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    return ngx_http_barcode_compile_variables(barcode_cfg_rotate, cf, cmd, conf);
+}
+
+static char *
+ngx_http_barcode_hrt(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    return ngx_http_barcode_compile_variables(barcode_cfg_hrt, cf, cmd, conf);
+}
+
+static char *
 ngx_http_barcode_compile_variables(ngx_http_barcode_cfg_t cfg_code,
         ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_http_barcode_loc_conf_t  *blcf;
@@ -183,7 +296,6 @@ ngx_http_barcode_compile_variables(ngx_http_barcode_cfg_t cfg_code,
     if (*cmds_ptr == NULL)
     {
         *cmds_ptr = ngx_array_create(cf->pool, 1, sizeof(ngx_http_barcode_cmd_t));
-
         if (*cmds_ptr == NULL) {
             return NGX_CONF_ERROR;
         }
@@ -307,6 +419,30 @@ ngx_http_barcode_run_variables(ngx_http_request_t *r, ngx_http_barcode_loc_conf_
             case barcode_cfg_txt:
                 blcf->txt.data = value[0].data;
                 blcf->txt.len = value[0].len;
+                break;
+            case barcode_cfg_fg:
+                blcf->fg.data = value[0].data;
+                blcf->fg.len = value[0].len;
+                break;
+            case barcode_cfg_bg:
+                blcf->bg.data = value[0].data;
+                blcf->bg.len = value[0].len;
+                break;
+            case barcode_cfg_height:
+                blcf->height.data = value[0].data;
+                blcf->height.len = value[0].len;
+                break;
+            case barcode_cfg_scale:
+                blcf->scale.data = value[0].data;
+                blcf->scale.len = value[0].len;
+                break;
+            case barcode_cfg_rotate:
+                blcf->rotate.data = value[0].data;
+                blcf->rotate.len = value[0].len;
+                break;
+            case barcode_cfg_hrt:
+                blcf->hrt.data = value[0].data;
+                blcf->hrt.len = value[0].len;
                 break;
             default:
                 ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
@@ -524,6 +660,44 @@ escape_char_process(struct zint_symbol *symbol, uint8_t input_string[], int leng
     error_number = ZBarcode_Encode(symbol, escaped_string, j);
 
     return error_number;
+}
+
+static int
+png_pixel_scale(ngx_http_request_t *req, struct zint_symbol *symbol, ngx_int_t *image_height, ngx_int_t *image_width) {
+    float scaler = symbol->scale;
+    u_char *scaled_pixelbuf;
+    int horiz, vert, i;
+    ngx_int_t scale_width, scale_height;
+
+    if(scaler == 0) {
+        scaler = 0.5;
+    }
+    scale_width = *image_width * scaler;
+    scale_height = *image_height * scaler;
+
+    scaled_pixelbuf = ngx_pcalloc(req->pool, scale_width * scale_height);
+    if (scaled_pixelbuf == NULL) {
+        ngx_log_error(NGX_LOG_ERR, req->connection->log, 0, "barcode: scale buffer realloc error");
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+    }
+    for(i = 0; i < (scale_width * scale_height); i++) {
+        *(scaled_pixelbuf + i) = '0';
+    }
+
+    for(vert = 0; vert < scale_height; vert++) {
+        for(horiz = 0; horiz < scale_width; horiz++) {
+            *(scaled_pixelbuf + (vert * scale_width) + horiz) =
+                *(symbol->output_buffer + ((int)(vert / scaler) * *image_width) + (int)(horiz / scaler));
+        }
+    }
+    if (ngx_pfree(req->pool, symbol->output_buffer) != NGX_OK) {
+        return NGX_ERROR;
+    }
+    symbol->output_buffer = (char *)scaled_pixelbuf;
+    *image_height = scale_height;
+    *image_width = scale_width;
+
+    return NGX_OK;
 }
 
 static int

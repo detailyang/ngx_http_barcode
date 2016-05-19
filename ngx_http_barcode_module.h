@@ -25,6 +25,12 @@ struct mainprog_info_type {
 
 typedef enum {
     barcode_cfg_txt = 0,
+    barcode_cfg_fg,
+    barcode_cfg_bg,
+    barcode_cfg_height,
+    barcode_cfg_scale,
+    barcode_cfg_rotate,
+    barcode_cfg_hrt
 } ngx_http_barcode_cfg_t;
 
 typedef struct {
@@ -39,9 +45,13 @@ typedef struct {
 } ngx_http_barcode_cmd_template_t;
 
 typedef struct {
-    char fgcolour[10];
-    char bgcolour[10];
+    ngx_str_t fg;
+    ngx_str_t bg;
     ngx_str_t txt;
+    ngx_str_t height;
+    ngx_str_t scale;
+    ngx_str_t rotate;
+    ngx_str_t hrt;
     ngx_array_t *cmds;
 } ngx_http_barcode_loc_conf_t;
 
@@ -56,11 +66,18 @@ static void ngx_http_barcode_png_write_data(png_structp png_ptr, png_bytep data,
 static int get_barcode_size(struct zint_symbol *symbol, ngx_int_t *i_height, ngx_int_t *i_width);
 static int png_pixel_plot(struct zint_symbol *symbol, int image_height, int image_width,
     char *pixelbuf, int rotate_angle, png_buf_t *png_buf);
+static int png_pixel_scale(ngx_http_request_t *req, struct zint_symbol *symbol,
+    ngx_int_t *image_height, ngx_int_t *image_width);
 static void *ngx_http_barcode_ngx_prealloc(ngx_pool_t *pool, void *p, size_t old_size, size_t new_size);
 static ngx_int_t ngx_http_barcode_run_variables(ngx_http_request_t *r, ngx_http_barcode_loc_conf_t *blcf);
 static char *ngx_http_barcode_compile_variables(ngx_http_barcode_cfg_t cfg_code,
         ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
-
+static char *ngx_http_barcode_fg(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
+static char *ngx_http_barcode_bg(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
+static char *ngx_http_barcode_height(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
+static char *ngx_http_barcode_scale(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
+static char *ngx_http_barcode_rotate(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
+static char *ngx_http_barcode_hrt(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
 
 extern int ustrlen(const uint8_t source[]);
 extern void to_latin1(uint8_t source[], uint8_t preprocessed[]);
