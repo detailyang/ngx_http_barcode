@@ -2,7 +2,7 @@
 * @Author: detailyang
 * @Date:   2016-05-18 09:43:45
 * @Last Modified by:   detailyang
-* @Last Modified time: 2016-05-19 13:55:17
+* @Last Modified time: 2016-05-19 14:36:37
 */
 #include "ngx_http_barcode_module.h"
 
@@ -738,9 +738,7 @@ png_pixel_scale(ngx_http_request_t *req, struct zint_symbol *symbol, ngx_int_t *
                 *(symbol->output_buffer + ((int)(vert / scaler) * *image_width) + (int)(horiz / scaler));
         }
     }
-    if (ngx_pfree(req->pool, symbol->output_buffer) != NGX_OK) {
-        return NGX_ERROR;
-    }
+    ngx_pfree(req->pool, symbol->output_buffer);
     symbol->output_buffer = (char *)scaled_pixelbuf;
     *image_height = scale_height;
     *image_width = scale_width;
