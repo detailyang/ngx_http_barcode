@@ -2,7 +2,7 @@
 * @Author: detailyang
 * @Date:   2016-05-18 09:43:45
 * @Last Modified by:   detailyang
-* @Last Modified time: 2016-05-19 13:42:07
+* @Last Modified time: 2016-05-19 13:55:17
 */
 #include "ngx_http_barcode_module.h"
 
@@ -71,6 +71,14 @@ static ngx_command_t ngx_http_barcode_commands[] = {
         offsetof(ngx_http_barcode_loc_conf_t, hrt),
         NULL
     },
+    {
+        ngx_string("barcode_barcode"),
+        NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
+        ngx_http_barcode_barcode,
+        NGX_HTTP_LOC_CONF_OFFSET,
+        offsetof(ngx_http_barcode_loc_conf_t, barcode),
+        NULL
+    },
     ngx_null_command
 };
 
@@ -135,7 +143,7 @@ ngx_http_barcode_handler(ngx_http_request_t *req) {
     int error_number;
     ssize_t size;
     ngx_http_barcode_loc_conf_t *blcf;
-    u_char *txt;
+    u_char *txt, *barcode;
     int rotate = 0;
 
     blcf = ngx_http_get_module_loc_conf(req, ngx_http_barcode_module);
@@ -183,6 +191,19 @@ ngx_http_barcode_handler(ngx_http_request_t *req) {
             return NGX_HTTP_BAD_REQUEST;
         }
     }
+    if (blcf->barcode.len) {
+        barcode = ngx_pcalloc(req->pool, blcf->barcode.len + 1);
+        if (barcode == NULL) {
+            ngx_log_error(NGX_LOG_ERR, req->connection->log, 0, "barcode: pcalloc barcode error");
+            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        }
+        ngx_sprintf(barcode, "%V", &blcf->barcode);
+        if (validator(NESET, (char *)barcode) != NGX_OK){
+            return NGX_HTTP_BAD_REQUEST;
+        }
+        symbol->symbology = ngx_atoi(blcf->barcode.data, blcf->barcode.len);
+    }
+
     error_number = escape_char_process(symbol, (uint8_t *)txt, ngx_strlen(txt));
     if (error_number != 0) {
         ZBarcode_Delete(symbol);
@@ -276,6 +297,11 @@ ngx_http_barcode_rotate(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
 static char *
 ngx_http_barcode_hrt(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     return ngx_http_barcode_compile_variables(barcode_cfg_hrt, cf, cmd, conf);
+}
+
+static char *
+ngx_http_barcode_barcode(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    return ngx_http_barcode_compile_variables(barcode_cfg_barcode, cf, cmd, conf);
 }
 
 static char *
@@ -444,6 +470,10 @@ ngx_http_barcode_run_variables(ngx_http_request_t *r, ngx_http_barcode_loc_conf_
                 blcf->hrt.data = value[0].data;
                 blcf->hrt.len = value[0].len;
                 break;
+            case barcode_cfg_barcode:
+                blcf->barcode.data = value[0].data;
+                blcf->barcode.len = value[0].len;
+                break;
             default:
                 ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                         "barcode: unknow directive %d", cmd[i].cfg_code);
@@ -500,6 +530,24 @@ ngx_http_barcode_ngx_prealloc(ngx_pool_t *pool, void *p, size_t old_size, size_t
     return new;
 }
 
+static int
+validator(char test_string[], char source[]) {
+    unsigned int i, j, latch;
+
+    for(i = 0; i < strlen(source); i++) {
+        latch = 0;
+        for(j = 0; j < strlen(test_string); j++) {
+            if (source[i] == test_string[j]) {
+                latch = 1;
+            }
+        }
+        if (!(latch)) {
+            return NGX_ERROR;
+        }
+    }
+
+    return NGX_OK;
+}
 
 static int
 get_barcode_size(struct zint_symbol *symbol, ngx_int_t *i_height, ngx_int_t *i_width) {

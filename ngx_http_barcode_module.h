@@ -8,6 +8,7 @@
 #include <string.h>
 
 #define SSET    "0123456789ABCDEF"
+#define NESET "0123456789"
 
 typedef struct {
   char *buffer;
@@ -30,7 +31,8 @@ typedef enum {
     barcode_cfg_height,
     barcode_cfg_scale,
     barcode_cfg_rotate,
-    barcode_cfg_hrt
+    barcode_cfg_hrt,
+    barcode_cfg_barcode,
 } ngx_http_barcode_cfg_t;
 
 typedef struct {
@@ -52,6 +54,7 @@ typedef struct {
     ngx_str_t scale;
     ngx_str_t rotate;
     ngx_str_t hrt;
+    ngx_str_t barcode;
     ngx_array_t *cmds;
 } ngx_http_barcode_loc_conf_t;
 
@@ -72,12 +75,14 @@ static void *ngx_http_barcode_ngx_prealloc(ngx_pool_t *pool, void *p, size_t old
 static ngx_int_t ngx_http_barcode_run_variables(ngx_http_request_t *r, ngx_http_barcode_loc_conf_t *blcf);
 static char *ngx_http_barcode_compile_variables(ngx_http_barcode_cfg_t cfg_code,
         ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
+static int validator(char test_string[], char source[]);
 static char *ngx_http_barcode_fg(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
 static char *ngx_http_barcode_bg(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
 static char *ngx_http_barcode_height(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
 static char *ngx_http_barcode_scale(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
 static char *ngx_http_barcode_rotate(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
 static char *ngx_http_barcode_hrt(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
+static char *ngx_http_barcode_barcode(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
 
 extern int ustrlen(const uint8_t source[]);
 extern void to_latin1(uint8_t source[], uint8_t preprocessed[]);
