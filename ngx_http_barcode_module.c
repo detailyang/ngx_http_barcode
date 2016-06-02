@@ -557,6 +557,7 @@ get_barcode_size(struct zint_symbol *symbol, ngx_int_t *i_height, ngx_int_t *i_w
     int i, r, textoffset, yoffset, xoffset, latch, image_width, image_height;
     int smalltext = 0;
     float row_height;
+    uint8_t local_text[ustrlen(symbol->text) + 1];
 
     if(symbol->symbology == BARCODE_MAXICODE) {
         xoffset = symbol->border_width + symbol->whitespace_width;
@@ -564,8 +565,6 @@ get_barcode_size(struct zint_symbol *symbol, ngx_int_t *i_height, ngx_int_t *i_w
         image_width = 300 + (2 * xoffset * 2);
         image_height = 300 + (2 * yoffset * 2);
     } else {
-        uint8_t local_text[ustrlen(symbol->text) + 1];
-
         if(symbol->show_hrt != 0) {
             to_latin1(symbol->text, local_text);
         } else {
