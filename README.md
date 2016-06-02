@@ -9,7 +9,6 @@ Table of Contents
 * [How-To-Use](#how-to-use)
 * [Requirements](#requirements)
 * [Direction](#direction)
-* [Production](#production)
 * [Contributing](#contributing)
 * [Author](#author)
 * [License](#license)
@@ -46,8 +45,19 @@ ngx_http_barcode requires the following to run:
 Direction
 ------------
 
+* barcode: enable barcode
+Syntax:     barcode
+Default:    -
+Context:    location
+
+```
+    location / {
+        barcode;
+    }
+```
+
 * barcode_txt: barcode content
-Syntax:     barcode_txt xxx;
+Syntax:     barcode_txt xxx
 Default:    -
 Context:    location
 
@@ -59,7 +69,7 @@ Context:    location
 ```
 
 * barcode_bg: background color
-Syntax:     barcode_bg xxx;
+Syntax:     barcode_bg xxx
 Default:    - (000000-ffffff)
 Context:    location
 ```
@@ -70,7 +80,7 @@ Context:    location
 ```
 
 * barcode_fg: foreground color
-Syntax:     barcode_fg xxx;
+Syntax:     barcode_fg xxx
 Default:    - (000000-ffffff)
 Context:    location
 
@@ -82,7 +92,7 @@ Context:    location
 ```
 
 * barcode_height: barcode height 
-Syntax:     barcode_height xxx;
+Syntax:     barcode_height xxx
 Default:    -
 Context:    location
 
@@ -94,7 +104,7 @@ Context:    location
 ```
 
 * barcode_scale: barcode picture scale 
-Syntax:     barcode_scale xxx;
+Syntax:     barcode_scale xxx
 Default:    - ([0.01-3])
 Context:    location
 
@@ -106,7 +116,7 @@ Context:    location
 ```
 
 * barcode_rotate: barcode picture rotate angle
-Syntax:     barcode_scale xxx;
+Syntax:     barcode_scale xxx
 Default:    - ([0，90，180，270] only)
 Context:    location
 
@@ -118,7 +128,7 @@ Context:    location
 ```
 
 * barcode_rotate: barcode picture show human readable text
-Syntax:     barcode_hrt xxx;
+Syntax:     barcode_hrt xxx
 Default:    false
 Context:    location
 
@@ -130,7 +140,7 @@ Context:    location
 ```
 
 * barcode_barcode: barcode type
-Syntax:     barcode_hrt xxx;
+Syntax:     barcode_hrt xxx
 Default:    20
 Context:    location
 
@@ -170,6 +180,20 @@ Context:    location
 50: Logmars 89: ITF-14
 ```
 
+Contributing
+------------
+
+To contribute to ngx_http_barcode, clone this repo locally and commit your code on a separate branch.
 
 
+Author
+------
 
+> GitHub [@detailyang](https://github.com/detailyang)
+
+
+License
+-------
+ngx_http_barcode is licensed under the [MIT] license.
+
+[MIT]: https://github.com/detailyang/ybw/blob/master/licenses/MIT
