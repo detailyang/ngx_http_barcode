@@ -551,12 +551,10 @@ validator(char test_string[], char source[]) {
 
 static int
 get_barcode_size(struct zint_symbol *symbol, ngx_int_t *i_height, ngx_int_t *i_width) {
-    int textdone, main_width, comp_offset, large_bar_count;
+    int comp_offset, large_bar_count;
     char addon[6];
-    float addon_text_posn, preset_height, large_bar_height;
+    float preset_height;
     int i, r, textoffset, yoffset, xoffset, latch, image_width, image_height;
-    int smalltext = 0;
-    float row_height;
     uint8_t local_text[ustrlen(symbol->text) + 1];
 
     if(symbol->symbology == BARCODE_MAXICODE) {
@@ -571,15 +569,8 @@ get_barcode_size(struct zint_symbol *symbol, ngx_int_t *i_height, ngx_int_t *i_w
             local_text[0] = '\0';
         }
 
-        textdone = 0;
-        main_width = symbol->width;
         strcpy(addon, "");
         comp_offset = 0;
-        addon_text_posn = 0.0;
-        row_height = 0;
-        if(symbol->output_options & SMALL_TEXT) {
-            smalltext = 1;
-        }
 
         if (symbol->height == 0) {
             symbol->height = 50;
@@ -596,11 +587,7 @@ get_barcode_size(struct zint_symbol *symbol, ngx_int_t *i_height, ngx_int_t *i_w
 
         if (large_bar_count == 0) {
             symbol->height = preset_height;
-            large_bar_height = 10;
-        } else {
-            large_bar_height = (symbol->height - preset_height) / large_bar_count;
         }
-
         while(!(module_is_set(symbol, symbol->rows - 1, comp_offset))) {
             comp_offset++;
         }
@@ -615,24 +602,21 @@ get_barcode_size(struct zint_symbol *symbol, ngx_int_t *i_height, ngx_int_t *i_w
                     if(symbol->whitespace_width == 0) {
                         symbol->whitespace_width = 10;
                     }
-                    main_width = 96 + comp_offset;
                     break;
                 default:
-                    main_width = 68 + comp_offset;
+                    ;
             }
         }
 
         if (((symbol->symbology == BARCODE_UPCA) && (symbol->rows == 1)) || (symbol->symbology == BARCODE_UPCA_CC)) {
             if(symbol->whitespace_width == 0) {
                 symbol->whitespace_width = 10;
-                main_width = 96 + comp_offset;
             }
         }
 
         if (((symbol->symbology == BARCODE_UPCE) && (symbol->rows == 1)) || (symbol->symbology == BARCODE_UPCE_CC)) {
             if(symbol->whitespace_width == 0) {
                 symbol->whitespace_width = 10;
-                main_width = 51 + comp_offset;
             }
         }
 
