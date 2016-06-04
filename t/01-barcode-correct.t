@@ -56,12 +56,16 @@ __DATA__
 --- request eval
 ["GET /barcode?txt=1",
  "GET /barcode?txt=2",
- "GET /barcode?txt=1&barcode=8",
- "GET /barcode?txt=1&barcode=8",
+ "GET /barcode?txt=3",
+ "GET /barcode?txt=4",
 ]
 
 --- response_body_filters eval
-[\&main::bardecode, \&main::bardecode, \&main::bardecode, undef]
+[\&main::bardecode, \&main::bardecode,
+ \&main::bardecode, \&main::bardecode
+]
 --- response_body_like eval
-["CODE-128:1", "CODE-128:2", "CODE-39:1", "PNG"]
+["CODE-128:1", "CODE-128:2",
+ "CODE-128:3", "CODE-128:4",
+]
 
