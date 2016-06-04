@@ -5,12 +5,10 @@ use Test::Nginx::Socket 'no_plan';
 require Image::Magick;
 require Barcode::ZBar;
 
-# repeat_each(30);
-# plan tests => repeat_each() * (3 * blocks());
 no_shuffle();
 run_tests();
 
-sub decode($) {
+sub bardecode($) {
     my $content = shift;
     my $scanner = Barcode::ZBar::ImageScanner->new();
 
@@ -59,10 +57,11 @@ __DATA__
 ["GET /barcode?txt=1",
  "GET /barcode?txt=2",
  "GET /barcode?txt=1&barcode=8",
+ "GET /barcode?txt=1&barcode=8",
 ]
 
 --- response_body_filters eval
-[\&main::decode, \&main::decode, \&main::decode]
---- response_body eval
-["CODE-128:1", "CODE-128:2", "CODE-39:1"]
+[\&main::bardecode, \&main::bardecode, \&main::bardecode]
+--- response_body_like eval
+["CODE-128:1", "CODE-128:2", "CODE-39:1", "PNG"]
 
