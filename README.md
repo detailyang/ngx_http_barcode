@@ -45,10 +45,10 @@ ngx_http_barcode requires the following to run:
 Direction
 ------------
 
-* barcode: enable barcode
-Syntax:     barcode
-Default:    -
-Context:    location
+* barcode: enable barcode       
+Syntax:     barcode       
+Default:    -      
+Context:    location       
 
 ```
     location / {
@@ -56,10 +56,10 @@ Context:    location
     }
 ```
 
-* barcode_txt: barcode content
-Syntax:     barcode_txt xxx
-Default:    -
-Context:    location
+* barcode_txt: barcode content    
+Syntax:     barcode_txt xxx       
+Default:    -        
+Context:    location    
 
 ```
     location / {
@@ -68,10 +68,10 @@ Context:    location
     }
 ```
 
-* barcode_bg: background color
-Syntax:     barcode_bg xxx
-Default:    - (000000-ffffff)
-Context:    location
+* barcode_bg: background color      
+Syntax:     barcode_bg xxx     
+Default:    - (000000-ffffff)     
+Context:    location       
 ```
     location / {
         barcode_bg $arg_bg;
@@ -79,10 +79,10 @@ Context:    location
     }  
 ```
 
-* barcode_fg: foreground color
-Syntax:     barcode_fg xxx
-Default:    - (000000-ffffff)
-Context:    location
+* barcode_fg: foreground color       
+Syntax:     barcode_fg xxx      
+Default:    - (000000-ffffff)     
+Context:    location       
 
 ```
     location / {
@@ -91,11 +91,11 @@ Context:    location
     }  
 ```
 
-* barcode_height: barcode height 
-Syntax:     barcode_height xxx
-Default:    -
-Context:    location
-
+* barcode_height: barcode height    
+Syntax:     barcode_height xxx      
+Default:    -           
+Context:    location          
+  
 ```
     location / {
         barcode_height $arg_height;
@@ -103,10 +103,10 @@ Context:    location
     }  
 ```
 
-* barcode_scale: barcode picture scale 
-Syntax:     barcode_scale xxx
-Default:    - ([0.01-3])
-Context:    location
+* barcode_scale: barcode picture scale     
+Syntax:     barcode_scale xxx         
+Default:    - ([0.01-3])       
+Context:    location       
 
 ```
     location / {
@@ -115,10 +115,10 @@ Context:    location
     }  
 ```
 
-* barcode_rotate: barcode picture rotate angle
-Syntax:     barcode_scale xxx
-Default:    - ([0，90，180，270] only)
-Context:    location
+* barcode_rotate: barcode picture rotate angle       
+Syntax:     barcode_scale xxx       
+Default:    - ([0，90，180，270] only)        
+Context:    location         
 
 ```
     location / {
@@ -127,10 +127,10 @@ Context:    location
     }  
 ```
 
-* barcode_rotate: barcode picture show human readable text
-Syntax:     barcode_hrt xxx
-Default:    false
-Context:    location
+* barcode_rotate: barcode picture show human readable text     
+Syntax:     barcode_hrt xxx     
+Default:    false           
+Context:    location        
 
 ```
     location / {
@@ -139,10 +139,10 @@ Context:    location
     }  
 ```
 
-* barcode_barcode: barcode type
-Syntax:     barcode_hrt xxx
-Default:    20
-Context:    location
+* barcode_barcode: barcode type        
+Syntax:     barcode_hrt xxx       
+Default:    20         
+Context:    location          
 
 ```
     location / {
