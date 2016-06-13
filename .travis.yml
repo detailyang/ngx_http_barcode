@@ -2,7 +2,7 @@ sudo: true
 language: c
 before_install:
   - (wget https://github.com/detailyang/zint/archive/2.4.2-memory.tar.gz && tar -zxf 2.4.2-memory.tar.gz && cd zint-2.4.2-memory && cmake . && sudo make install)
-  - sudo apt-get install libev-dev build-essential cpanminus libzbar-dev libbarcode-zbar-perl perlmagick
+  - sudo apt-get install libev-dev build-essential cpanminus libzbar-dev libbarcode-zbar-perl perlmagick libpng12-devel
   - wget https://github.com/lighttpd/weighttp/archive/weighttp-0.4.tar.gz
   - tar -zxf weighttp-0.4.tar.gz
   - (cd weighttp-weighttp-0.4 && ./autogen.sh && ./configure && make && sudo make install)
