@@ -61,7 +61,7 @@ __DATA__
 ]
 
 --- response_body_filters eval
-\&main::bardecode
+[\&main::bardecode]
 
 --- response_body_like eval
 ["CODE-128:1", "CODE-128:2",
