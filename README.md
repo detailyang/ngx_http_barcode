@@ -1,4 +1,4 @@
-# move to [nginx-lover/ngx_http_barcode](https://github.com/nginx-lover/ngx_http_barcode)
+# move to [x-v8/ngx_http_barcode](https://github.com/x-v8/ngx_http_barcode)
 # ngx http barcode module
 ![Branch master](https://img.shields.io/badge/branch-master-brightgreen.svg?style=flat-square)[![Build](https://api.travis-ci.org/detailyang/ngx_http_barcode.svg)](https://travis-ci.org/detailyang/ngx_http_barcode)[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/detailyang/ngx_http_barcode/master/LICENSE)[![release](https://img.shields.io/github/release/detailyang/ngx_http_barcode.svg)](https://github.com/detailyang/ngx_http_barcode/releases)
 
